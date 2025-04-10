@@ -1,0 +1,63 @@
+package com.boulangerie.controllers;
+
+import com.boulangerie.entities.Produit;
+import com.boulangerie.services.ProduitService;
+import com.boulangerie.services.HistoriquePrixService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+@Controller
+@RequestMapping("/prix")
+public class PrixController {
+    @Autowired
+    private ProduitService produitService;
+
+    @Autowired
+    private HistoriquePrixService historiquePrixService;
+
+    @GetMapping("/edition")
+    public String editionPrix(Model model) {
+        model.addAttribute("produits", produitService.getAllProduits());
+        return "prix/edition";
+    }
+
+/*    @PostMapping("/modifier")
+    public String modifierPrix(@RequestParam Long produitId, @RequestParam BigDecimal nouveauPrix, @RequestParam LocalDate modif) {
+        Produit produit = produitService.getProduitById(produitId);
+        BigDecimal ancienPrix = produit.getPrix();
+        produit.setPrix(nouveauPrix);
+        produitService.saveProduit(produit);
+        historiquePrixService.enregistrerModification(produit, ancienPrix, nouveauPrix, modif);
+        return "redirect:/prix/edition";
+    }*/
+    @PostMapping("/modifier")
+    public String modifierPrix(@RequestParam Long produitId, @RequestParam BigDecimal nouveauPrix) {
+        Produit produit = produitService.getProduitById(produitId);
+        BigDecimal ancienPrix = produit.getPrix();
+        produit.setPrix(nouveauPrix);
+        produitService.saveProduit(produit);
+        historiquePrixService.enregistrerModification(produit, ancienPrix, nouveauPrix);
+        return "redirect:/prix/edition";
+    }
+
+    @GetMapping("/historique")
+    public String historique(
+            Model model,
+            @RequestParam(required = false) Long produitId,
+            @RequestParam(required = false) Date debut,
+            @RequestParam(required = false) Date fin
+    ) {
+
+
+        model.addAttribute("produits", produitService.getAllProduits());
+        model.addAttribute("historique", historiquePrixService.rechercher(produitId, dateDebut, dateFin));
+        return "prix/historique";
+    }
+}

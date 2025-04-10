@@ -1,0 +1,71 @@
+package com.boulangerie.repositories;
+
+import com.boulangerie.entities.Vente;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+public interface VenteRepository extends JpaRepository<Vente, Long> {
+/*    @Query("SELECT DISTINCT v FROM Vente v")
+    List<Vente> rechercheVentesAvancee(
+            @Param("dateDebut") LocalDate dateDebut,
+            @Param("dateFin") LocalDate dateFin,
+            @Param("nomProduit") String nomProduit,
+            @Param("categorie") String categorie,
+            @Param("prixMin") Double prixMin,
+            @Param("prixMax") Double prixMax
+    );*/
+
+/*    @Query("""
+            SELECT v FROM Vente v 
+            JOIN v.lignesVente lv 
+            JOIN lv.produit p 
+            WHERE (:dateDebut IS NULL OR v.dateVente >= :dateDebut)
+            AND (:dateFin IS NULL OR v.dateVente <= :dateFin)
+            AND (:nomProduit IS NULL OR p.nom LIKE %:nomProduit%)
+            AND (:categorie IS NULL OR p.categorie = :categorie)
+            AND (:prixMin IS NULL OR lv.prixUnitaire >= :prixMin)
+            AND (:prixMax IS NULL OR lv.prixUnitaire <= :prixMax)
+            """)
+    List<Vente> rechercheAvancee(
+            @Param("dateDebut") LocalDate dateDebut,
+            @Param("dateFin") LocalDate dateFin,
+            @Param("nomProduit") String nomProduit,
+            @Param("categorie") String categorie,
+            @Param("prixMin") Double prixMin,
+            @Param("prixMax") Double prixMax
+    );*/
+
+    @Query("""
+        SELECT v FROM Vente v 
+        LEFT JOIN v.lignesVente lv 
+        LEFT JOIN lv.produit p 
+        WHERE (:dateDebut IS NULL OR v.dateVente >= :dateDebut)
+        AND (:dateFin IS NULL OR v.dateVente <= :dateFin)
+        AND (:nomProduit IS NULL OR p.nom LIKE %:nomProduit%)
+        AND (:categorie IS NULL OR p.categorie = :categorie)
+        AND (:prixMin IS NULL OR lv.prixUnitaire >= :prixMin)
+        AND (:prixMax IS NULL OR lv.prixUnitaire <= :prixMax)
+    """)
+    List<Vente> rechercheAvancee(
+            @Param("dateDebut") LocalDate dateDebut,
+            @Param("dateFin") LocalDate dateFin,
+            @Param("nomProduit") String nomProduit,
+            @Param("categorie") String categorie,
+            @Param("prixMin") Double prixMin,
+            @Param("prixMax") Double prixMax
+    );sss
+
+
+    List<Vente> findByVendeurId(Long vendeurId);
+
+    List<Vente> findByVendeurIdAndDateVenteBetween(Long vendeurId, LocalDateTime dateDebut, LocalDateTime dateFin);
+
+    //List<Vente> findByVendeurIdAndDateVenteBetween(Long vendeurId, LocalDateTime dateDebut, LocalDateTime dateFin);
+
+    List<Vente> findByDateVenteBetween(LocalDateTime dateDebut, LocalDateTime dateFin);
+}

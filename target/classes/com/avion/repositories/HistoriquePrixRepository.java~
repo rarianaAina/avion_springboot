@@ -1,0 +1,50 @@
+/*
+package com.boulangerie.repositories;
+
+import com.boulangerie.entities.HistoriquePrix;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public interface HistoriquePrixRepository extends JpaRepository<HistoriquePrix, Long> {
+    @Query(value = "SELECT * FROM historique_prix h WHERE " +
+            "(:produitId IS NULL OR h.produit_id = :produitId) AND " +
+            "(:debut IS NULL OR :fin IS NULL OR h.date_modification BETWEEN :debut AND :fin)",
+            nativeQuery = true)
+    List<HistoriquePrix> rechercher(
+            @Param("produitId") Long produitId,
+            @Param("debut") LocalDate debut,
+            @Param("fin") LocalDate fin
+    );
+}
+*/
+
+package com.boulangerie.repositories;
+
+import com.boulangerie.entities.HistoriquePrix;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.List;
+
+public interface HistoriquePrixRepository extends JpaRepository<HistoriquePrix, Long> {
+    @Query(value = "SELECT * FROM historique_prix h WHERE " +
+            "(h.produit_id = :produitId OR :produitId IS NULL) AND " +
+            "(h.date_modification BETWEEN (:debut IS NULL OR :debut ) AND (:fin IS NULL OR :fin))",
+            nativeQuery = true)
+    List<HistoriquePrix> rechercher(
+            @Param("produitId") Long produitId,
+            @Param("debut") LocalDate debut,
+            @Param("fin") LocalDate fin
+    );
+
+    List<HistoriquePrix> findByDateModificationBetween(Date debut,Date fin);
+    List<HistoriquePrix> findByDateModificationGreaterThanEqual(Date debut);
+    List<HistoriquePrix> findByDateModificationLessThanEqual(Date fin);
+}

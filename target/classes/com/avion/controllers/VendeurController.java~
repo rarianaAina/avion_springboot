@@ -1,0 +1,74 @@
+package com.boulangerie.controllers;
+
+import com.boulangerie.entities.Vendeur;
+import com.boulangerie.services.VendeurService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+import java.util.List;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+@Controller
+@RequestMapping("/vendeurs")
+public class VendeurController {
+    @Autowired
+    private VendeurService vendeurService;
+
+    @GetMapping("/nouveau")
+    public String nouveauVendeur(Model model) {
+        model.addAttribute("vendeur", new Vendeur());
+        return "vendeurs/form";
+    }
+
+    @PostMapping("/sauvegarder")
+    public String sauvegarderVendeur(@ModelAttribute Vendeur vendeur) {
+        vendeurService.saveVendeur(vendeur);
+        return "redirect:/vendeurs/statistiques";
+    }
+
+    @GetMapping("/statistiques")
+    public String statistiquesVendeur(
+            Model model,
+            @RequestParam(required = false) Long vendeurId,
+            @RequestParam(required = false) Vendeur.Genre genre,
+            @RequestParam(required = false) LocalDate dateDebut,
+            @RequestParam(required = false) LocalDate dateFin
+    ) {
+        List<Vendeur> vendeurs = vendeurService.getAllVendeurs();
+        if (genre != null) {
+            vendeurs = vendeurs.stream()
+                    .filter(v -> v.getGenre() == genre)
+                    .toList();
+        }
+        model.addAttribute("vendeurs", vendeurs);
+
+        // Si aucun vendeur n'est sélectionné et qu'il y a des vendeurs disponibles
+        if (vendeurId == null && !vendeurs.isEmpty()) {
+            vendeurId = vendeurs.get(0).getId();
+        }
+
+        if (dateDebut == null) {
+            dateDebut = LocalDate.now().withDayOfMonth(1); // Premier jour du mois
+        }
+        if (dateFin == null) {
+            dateFin = LocalDate.now(); // Aujourd'hui
+        }
+
+        if (vendeurId != null) {
+            LocalDateTime debut = dateDebut.atStartOfDay();
+            LocalDateTime fin = dateFin.atTime(LocalTime.MAX);
+
+            Map<String, Object> stats = vendeurService.getStatistiquesVendeur(vendeurId, debut, fin);
+            model.addAttribute("statistiques", stats);
+        }
+
+        model.addAttribute("selectedVendeurId", vendeurId);
+        model.addAttribute("dateDebut", dateDebut);
+        model.addAttribute("dateFin", dateFin);
+        return "vendeurs/statistiques";
+    }
+}

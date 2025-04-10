@@ -1,0 +1,59 @@
+package com.boulangerie.services;
+
+import com.boulangerie.entities.Vendeur;
+import com.boulangerie.entities.Vente;
+import com.boulangerie.repositories.VendeurRepository;
+import com.boulangerie.repositories.VenteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.time.LocalDateTime;
+
+@Service
+public class VendeurService {
+    @Autowired
+    private VendeurRepository vendeurRepository;
+
+    @Autowired
+    private VenteRepository venteRepository;
+
+    public List<Vendeur> getAllVendeurs() {
+        return vendeurRepository.findAll();
+    }
+
+    public Vendeur saveVendeur(Vendeur vendeur) {
+        return vendeurRepository.save(vendeur);
+    }
+
+    public Map<String, Object> getStatistiquesVendeur(Long vendeurId, LocalDateTime dateDebut, LocalDateTime dateFin) {
+        Map<String, Object> stats = new HashMap<>();
+        List<Vente> ventes;
+
+        if (vendeurId != null) {
+            // Statistiques pour un vendeur spécifique
+            ventes = venteRepository.findByVendeurIdAndDateVenteBetween(vendeurId, dateDebut, dateFin);
+        } else {
+            // Statistiques pour tous les vendeurs
+            ventes = venteRepository.findByDateVenteBetween(dateDebut, dateFin);
+        }
+
+        BigDecimal totalVentes = ventes.stream()
+                .map(Vente::getMontantTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalCommissions = ventes.stream()
+                .map(Vente::getCommissionVendeur)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        stats.put("ventes", ventes);
+        stats.put("totalVentes", totalVentes);
+        stats.put("totalCommissions", totalCommissions);
+        stats.put("dateDebut", dateDebut);
+        stats.put("dateFin", dateFin);
+
+        return stats;
+    }
+}

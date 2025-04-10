@@ -1,0 +1,34 @@
+package com.boulangerie.services;
+
+import com.boulangerie.entities.HistoriquePrix;
+import com.boulangerie.entities.Produit;
+import com.boulangerie.repositories.HistoriquePrixRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.List;
+
+@Service
+public class HistoriquePrixService {
+    @Autowired
+    private HistoriquePrixRepository historiquePrixRepository;
+
+    public void enregistrerModification(Produit produit, BigDecimal ancienPrix, BigDecimal nouveauPrix) {
+        HistoriquePrix historique = new HistoriquePrix();
+        historique.setProduit(produit);
+        historique.setAncienPrix(ancienPrix);
+        historique.setNouveauPrix(nouveauPrix);
+        historique.setDateModification(Date.valueOf(LocalDate.now()));
+        historiquePrixRepository.save(historique);
+    }
+
+    public List<HistoriquePrix> rechercher(Long produitId, Date debut, Date fin) {
+        if (debut == null && fin == null) {
+            return historiquePrixRepository.rechercher(produitId, null, null);
+        }
+        return historiquePrixRepository.rechercher(produitId, debut.toLocalDate(), fin.toLocalDate());
+    }
+    
+}

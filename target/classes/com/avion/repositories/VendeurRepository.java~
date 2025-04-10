@@ -1,0 +1,4 @@
+package com.boulangerie.repositories;
+
+public class VendeurRepository {
+}

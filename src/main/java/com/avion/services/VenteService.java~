@@ -1,0 +1,99 @@
+package com.boulangerie.services;
+
+import com.boulangerie.entities.Vente;
+import com.boulangerie.entities.LigneVente;
+import com.boulangerie.entities.Produit;
+import com.boulangerie.entities.Client;
+import com.boulangerie.entities.Vendeur;
+import com.boulangerie.repositories.VenteRepository;
+import com.boulangerie.repositories.ProduitRepository;
+import com.boulangerie.repositories.ClientRepository;
+import com.boulangerie.repositories.VendeurRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.math.BigDecimal;
+
+@Service
+public class VenteService {
+    @Autowired
+    private VenteRepository venteRepository;
+
+    @Autowired
+    private ProduitRepository produitRepository;
+
+    @Autowired
+    private ClientRepository clientRepository;
+
+    @Autowired
+    private VendeurRepository vendeurRepository;
+
+    public List<Vente> rechercheVentesAvancee(
+            LocalDate dateDebut,
+            LocalDate dateFin,
+            String nomProduit,
+            String categorie,
+            Double prixMin,
+            Double prixMax
+    ) {
+        // Appel du repository avec les paramètres
+        return venteRepository.rechercheAvancee(
+                dateDebut,
+                dateFin,
+                nomProduit,
+                categorie,
+                prixMin,
+                prixMax
+        );
+    }
+
+    @Transactional
+    public Vente effectuerVente(
+            List<LigneVente> lignesVente,
+            Long clientId,
+            Long vendeurId,
+            Vente.ModePaiement modePaiement,
+            LocalDateTime dateVente
+    ) {
+        Vente vente = new Vente();
+        vente.setDateVente(dateVente != null ? dateVente : LocalDateTime.now());
+        vente.setModePaiement(modePaiement);
+
+        if (clientId != null) {
+            Client client = clientRepository.findById(clientId)
+                    .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+            vente.setClient(client);
+        }
+
+        if (vendeurId != null) {
+            Vendeur vendeur = vendeurRepository.findById(vendeurId)
+                    .orElseThrow(() -> new RuntimeException("Vendeur non trouvé"));
+            vente.setVendeur(vendeur);
+        }
+
+        BigDecimal montantTotal = BigDecimal.ZERO;
+        for (LigneVente ligne : lignesVente) {
+            Produit produit = produitRepository.findById(ligne.getProduit().getId())
+                    .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+
+            ligne.setPrixUnitaire(produit.getPrix());
+            ligne.setSousTotal(produit.getPrix().multiply(BigDecimal.valueOf(ligne.getQuantite())));
+            ligne.setVente(vente);
+
+            montantTotal = montantTotal.add(ligne.getSousTotal());
+
+            // Mise à jour du stock
+            produit.setQuantiteStock(produit.getQuantiteStock() - ligne.getQuantite());
+            produitRepository.save(produit);
+        }
+
+        vente.setMontantTotal(montantTotal);
+        vente.setLignesVente(lignesVente);
+
+        return venteRepository.save(vente);
+    }
+}

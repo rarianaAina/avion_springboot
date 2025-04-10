@@ -1,0 +1,16 @@
+package com.avion.services;
+
+import com.avion.entities.Configuration;
+import com.avion.repositories.ConfigurationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class ConfigurationService {
+
+    @Autowired
+    ConfigurationRepository configurationRepository;
+    public Configuration saveConfiguration(Configuration configuration) {
+        return configurationRepository.save(configuration);
+    }
+}

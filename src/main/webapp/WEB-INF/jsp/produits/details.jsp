@@ -1,0 +1,96 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Détails du Produit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-6">
+            <a href="/" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                Retour à l'accueil
+            </a>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Détails du Produit: ${produit.nom}</h1>
+                <div>
+                    <a href="/produits/editer/${produit.id}" 
+                       class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded mr-2">
+                        Éditer
+                    </a>
+                    <a href="/produits" 
+                       class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                        Retour
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold mb-4">Informations Générales</h2>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="mb-2"><span class="font-semibold">Catégorie:</span> ${produit.categorie}</p>
+                        <p class="mb-2"><span class="font-semibold">Prix:</span> ${produit.prix} €</p>
+                        <p class="mb-2"><span class="font-semibold">Stock:</span> ${produit.quantiteStock}</p>
+                        <p><span class="font-semibold">Description:</span> ${produit.description}</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold mb-4">Ingrédients de la Recette</h2>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Ingrédient</th>
+                                    <th class="text-left">Quantité</th>
+                                    <th class="text-left">Unité</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${produit.ingredients}" var="recette">
+                                    <tr>
+                                        <td>${recette.ingredient.nom}</td>
+                                        <td>${recette.quantite}</td>
+                                        <td>${recette.ingredient.unite}</td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <h2 class="text-xl font-semibold mb-4">Gestion des Ingrédients</h2>
+                <form action="/produits/${produit.id}/ingredients/ajouter" method="post" class="bg-gray-50 p-4 rounded">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ingrédient</label>
+                            <select name="ingredientId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                <c:forEach items="${ingredients}" var="ingredient">
+                                    <option value="${ingredient.id}">${ingredient.nom}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Quantité</label>
+                            <input type="number" name="quantite" step="0.01" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" 
+                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                                Ajouter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
