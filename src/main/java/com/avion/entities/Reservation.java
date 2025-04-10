@@ -1,11 +1,20 @@
 package com.avion.entities;
 
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.Data;
+
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Entity
+@Data
 public class Reservation {
 
+
+    @Id
     private String idReservation;
     private LocalDateTime dateReservation;
     private BigDecimal prix;
