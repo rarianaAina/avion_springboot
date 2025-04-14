@@ -1,6 +1,7 @@
 package com.avion.controllers;
 
 import com.avion.services.ConfigurationService;
+import com.avion.services.PdfService;
 import com.avion.services.ReservationService;
 import com.avion.services.VolService;
 import com.avion.entities.Reservation;
@@ -20,9 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +42,9 @@ public class ReservationController {
     @Autowired
     private ConfigurationService configurationService;
 
+    @Autowired
+    private PdfService pdfService;
+    
     @GetMapping("/nouvelle")
     public String nouvelleConfiguration(Model model) {
         List<Vol> volList = volService.getAllVols();
@@ -168,72 +169,87 @@ public class ReservationController {
         return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
     }*/
 
-    @GetMapping("/api/{id}/pdf")
+    // @GetMapping("/api/{id}/pdf")
+    // public ResponseEntity<byte[]> getReservationPdf(@PathVariable String id) throws DocumentException, IOException {
+    //     Reservation reservation = reservationService.getReservationById(id);
+    //     if (reservation == null) {
+    //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    //     }
+
+    //     // Création du document PDF
+    //     Document document = new Document(PageSize.A4);
+    //     ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    //     PdfWriter.getInstance(document, baos);
+
+    //     document.open();
+
+    //     // Ajouter du contenu au PDF
+    //     Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+    //     Paragraph title = new Paragraph("Détails de la réservation", titleFont);
+    //     title.setAlignment(Element.ALIGN_CENTER);
+    //     title.setSpacingAfter(20);
+    //     document.add(title);
+
+    //     // Informations de réservation (exemple)
+    //     Font regularFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
+    //     Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
+
+    //     PdfPTable table = new PdfPTable(2); // Table à 2 colonnes
+    //     table.setWidthPercentage(100); // Table prenant toute la largeur du document
+
+    //     table.addCell(new PdfPCell(new Phrase("ID de réservation:", boldFont)));
+    //     table.addCell(new PdfPCell(new Phrase(reservation.getIdReservation(), regularFont)));
+
+    //     // Deuxième ligne : Date de réservation
+    //     table.addCell(new PdfPCell(new Phrase("Date de réservation:", boldFont)));
+    //     table.addCell(new PdfPCell(new Phrase(reservation.getDateReservation().toString(), regularFont)));
+
+    //     // Troisième ligne : Prix
+    //     table.addCell(new PdfPCell(new Phrase("Prix:", boldFont)));
+    //     table.addCell(new PdfPCell(new Phrase(reservation.getPrix().toString(), regularFont)));
+
+    //     // Quatrième ligne : Type de siège
+    //     table.addCell(new PdfPCell(new Phrase("Type de siège:", boldFont)));
+    //     table.addCell(new PdfPCell(new Phrase(reservation.getIdTypeSiege(), regularFont)));
+
+    //     // Ajouter d'autres informations de la réservation à la table
+
+    //     document.add(table);
+
+    //     // Footer avec texte centré
+    //     Font footerFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 10);
+    //     Paragraph footer = new Paragraph("Merci d'avoir réservé avec nous!", footerFont);
+    //     footer.setAlignment(Element.ALIGN_CENTER);
+    //     footer.setSpacingBefore(20);
+    //     document.add(footer);
+
+    //     // Fermer le document PDF
+    //     document.close();
+
+    //     byte[] pdfContent = baos.toByteArray();
+
+    //     // Définir les en-têtes pour forcer le téléchargement du fichier PDF
+    //     HttpHeaders headers = new HttpHeaders();
+    //     headers.add("Content-Disposition", "attachment; filename=reservation_" + reservation.getIdReservation() + ".pdf");
+    //     headers.add("Content-Type", "application/pdf");
+
+    //     // Retourner la réponse avec le contenu du PDF et les en-têtes pour forcer le téléchargement
+    //     return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+    // }
+
+    @GetMapping("/apis/{id}/pdf")
     public ResponseEntity<byte[]> getReservationPdf(@PathVariable String id) throws DocumentException, IOException {
         Reservation reservation = reservationService.getReservationById(id);
         if (reservation == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // Création du document PDF
-        Document document = new Document(PageSize.A4);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdfWriter.getInstance(document, baos);
+        byte[] pdfContent = pdfService.generateReservationPdf(reservation);
 
-        document.open();
-
-        // Ajouter du contenu au PDF
-        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
-        Paragraph title = new Paragraph("Détails de la réservation", titleFont);
-        title.setAlignment(Element.ALIGN_CENTER);
-        title.setSpacingAfter(20);
-        document.add(title);
-
-        // Informations de réservation (exemple)
-        Font regularFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
-        Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
-
-        PdfPTable table = new PdfPTable(2); // Table à 2 colonnes
-        table.setWidthPercentage(100); // Table prenant toute la largeur du document
-
-        table.addCell(new PdfPCell(new Phrase("ID de réservation:", boldFont)));
-        table.addCell(new PdfPCell(new Phrase(reservation.getIdReservation(), regularFont)));
-
-        // Deuxième ligne : Date de réservation
-        table.addCell(new PdfPCell(new Phrase("Date de réservation:", boldFont)));
-        table.addCell(new PdfPCell(new Phrase(reservation.getDateReservation().toString(), regularFont)));
-
-        // Troisième ligne : Prix
-        table.addCell(new PdfPCell(new Phrase("Prix:", boldFont)));
-        table.addCell(new PdfPCell(new Phrase(reservation.getPrix().toString(), regularFont)));
-
-        // Quatrième ligne : Type de siège
-        table.addCell(new PdfPCell(new Phrase("Type de siège:", boldFont)));
-        table.addCell(new PdfPCell(new Phrase(reservation.getIdTypeSiege(), regularFont)));
-
-        // Ajouter d'autres informations de la réservation à la table
-
-        document.add(table);
-
-        // Footer avec texte centré
-        Font footerFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 10);
-        Paragraph footer = new Paragraph("Merci d'avoir réservé avec nous!", footerFont);
-        footer.setAlignment(Element.ALIGN_CENTER);
-        footer.setSpacingBefore(20);
-        document.add(footer);
-
-        // Fermer le document PDF
-        document.close();
-
-        byte[] pdfContent = baos.toByteArray();
-
-        // Définir les en-têtes pour forcer le téléchargement du fichier PDF
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Disposition", "attachment; filename=reservation_" + reservation.getIdReservation() + ".pdf");
         headers.add("Content-Type", "application/pdf");
 
-        // Retourner la réponse avec le contenu du PDF et les en-têtes pour forcer le téléchargement
         return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
     }
-
 }

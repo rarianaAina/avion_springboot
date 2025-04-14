@@ -1,6 +1,7 @@
 package com.avion.services;
 
 import com.avion.entities.Configuration;
+import com.avion.entities.Reservation;
 import com.avion.entities.Vol;
 import com.avion.repositories.ConfigurationRepository;
 import com.avion.repositories.VolRepository;
@@ -16,5 +17,9 @@ public class VolService {
     VolRepository volRepository;
     public List<Vol> getAllVols() {
         return volRepository.findAll();
+    }
+
+    public Vol getVolById(String idVol) {
+        return volRepository.findById(idVol).orElse(null);
     }
 }
